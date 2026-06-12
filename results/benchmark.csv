@@ -1,10 +1,10 @@
 categoria,voce,valore,unita
-operazione_crypto,RSA-2048 keygen,69.3058,ms
-operazione_crypto,RSA-OAEP encrypt (scheda),0.0248,ms
-operazione_crypto,RSA-OAEP decrypt (scheda),0.7917,ms
-operazione_crypto,RSA-PSS sign,0.7881,ms
-operazione_crypto,RSA-PSS verify,0.0262,ms
-operazione_crypto,SHA-256 (64 byte),0.0003,ms
+operazione_crypto,RSA-2048 keygen,77.2033,ms
+operazione_crypto,RSA-OAEP encrypt (scheda),0.0239,ms
+operazione_crypto,RSA-OAEP decrypt (scheda),0.8119,ms
+operazione_crypto,RSA-PSS sign,0.7901,ms
+operazione_crypto,RSA-PSS verify,0.0266,ms
+operazione_crypto,SHA-256 (64 byte),0.0004,ms
 dimensione_messaggio,Nonce N,32,byte
 dimensione_messaggio,Firma token sigma_N,256,byte
 dimensione_messaggio,"Token T = (N, sigma_N)",288,byte
@@ -12,7 +12,7 @@ dimensione_messaggio,Scheda cifrata ct (RSA-OAEP),256,byte
 dimensione_messaggio,"Messaggio di voto M_vote = (N, sigma_N, ct)",544,byte
 dimensione_messaggio,Ricevuta rho,256,byte
 dimensione_messaggio,"Merkle proof (100 schede su BB, 7 hash)",224,byte
-scaling,N=10,voto_tot=19.42;voto_el=1.942;scrutinio=11.32;vind=0.116;vuniv=0.32,ms
-scaling,N=50,voto_tot=94.26;voto_el=1.885;scrutinio=42.65;vind=0.136;vuniv=0.36,ms
-scaling,N=100,voto_tot=188.16;voto_el=1.882;scrutinio=84.98;vind=0.148;vuniv=0.41,ms
-scaling,N=200,voto_tot=386.79;voto_el=1.934;scrutinio=168.52;vind=0.197;vuniv=0.52,ms
+scaling,N=10,voto_tot=19.60;voto_el=1.960;scrutinio=11.16;vind=0.124;vuniv=0.42,ms
+scaling,N=50,voto_tot=92.00;voto_el=1.840;scrutinio=42.21;vind=0.131;vuniv=0.46,ms
+scaling,N=100,voto_tot=193.14;voto_el=1.931;scrutinio=87.44;vind=0.149;vuniv=0.53,ms
+scaling,N=200,voto_tot=390.67;voto_el=1.953;scrutinio=171.54;vind=0.182;vuniv=0.65,ms

@@ -56,8 +56,29 @@ class VoteRejected(Exception):
 
 
 def _now_iso() -> str:
-    """Timestamp corrente in formato ISO (stringa), usato nelle voci dell'urna."""
+    """Timestamp corrente in formato ISO (stringa), usato per la chiusura delle urne."""
     return dt.datetime.now(dt.timezone.utc).isoformat()
+
+
+def _coarse_ts() -> str:
+    """
+    Timestamp a GRANA GROSSA (arrotondato all'ora, UTC) per le voci dell'urna
+    e per le ricevute.
+
+    Perché non un timestamp preciso? Le voci del bulletin board sono PUBBLICHE:
+    un timestamp al microsecondo permetterebbe a chi conosce l'istante di
+    autenticazione di un elettore (l'IdP, da solo) di correlarlo con l'istante
+    di pubblicazione della scheda e quindi — dopo la pubblicazione di D — con
+    il voto, de-anonimizzando senza alcuna collusione. La granularità oraria
+    fa confluire molte schede nella stessa "finestra", chiudendo questo canale
+    laterale senza alcuna perdita per le altre proprietà (l'unicità della voce
+    è garantita da ct, non dal timestamp).
+    """
+    return (
+        dt.datetime.now(dt.timezone.utc)
+        .replace(minute=0, second=0, microsecond=0)
+        .isoformat()
+    )
 
 
 class ElectionAuthority:
@@ -143,7 +164,9 @@ class ElectionAuthority:
         self._nonce_to_ct[nonce] = ct
 
         # (4) Aggiunge la scheda al bulletin board e firma la nuova Merkle root.
-        timestamp = _now_iso()
+        # Timestamp a grana grossa: evita la correlazione
+        # temporale autenticazione->voto sui dati pubblici.
+        timestamp = _coarse_ts()
         entry = {"ct": ct, "timestamp": timestamp, "h_ct": cu.sha256(ct)}
         self.bb.add_vote_entry(entry)
         root = self.bb.current_root()

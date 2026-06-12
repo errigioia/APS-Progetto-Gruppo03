@@ -9,7 +9,8 @@ La funzione verify_election() esegue tutti i controlli e restituisce un
 dizionario "nome del controllo -> esito" più la chiave "OK" con l'esito globale
 (che è semplicemente l'AND di tutti gli altri). I passi sono:
 
-  0.     il certificato di firma dell'AE non è revocato (CRL hard-fail);
+  0.     i certificati di AE (firma), IdP e Commissione sono validi e non
+         revocati (CRL hard-fail): sono le chiavi con cui si verificano le firme;
   -      la lista dei candidati è firmata dalla Commissione;
   1.     la chiusura dell'urna è firmata dall'AE;
   2.     ricalcolando la Merkle root si riottiene quella firmata (integrità);
@@ -54,12 +55,19 @@ def verify_election(bb: BulletinBoard, ca_public: RSAPublicKey) -> dict[str, boo
     idp_pub = bb.get("idp_cert").public_key()
     valid_options = set(candidates["C"])
 
-    # --- Passo 0: il certificato di firma dell'AE non deve essere revocato ----- #
-    try:
-        check_certificate(bb.get("ae_certs")["sign"], bb.get("crl"), ca_public)
-        checks["passo0_crl_AE"] = True
-    except CertificateRejected:
-        checks["passo0_crl_AE"] = False
+    # Passo 0: Tutti i certificati usati dalla verifica devono essere
+    # validi e non revocati (CRL hard-fail): AE (firma), IdP e Commissione.
+    # Le chiavi pubbliche con cui verifichiamo sigma_close, sigma_result,
+    # sigma_count e sigma_elig provengono da questi certificati: fidarsi di un
+    # certificato non validato contro pk_CA vanificherebbe i controlli successivi.
+    crl = bb.get("crl")
+    passo0 = True
+    for cert in (bb.get("ae_certs")["sign"], bb.get("idp_cert"), candidates["cert"]):
+        try:
+            check_certificate(cert, crl, ca_public)
+        except CertificateRejected:
+            passo0 = False
+    checks["passo0_crl_certificati"] = passo0
 
     # --- La lista dei candidati è autentica (firmata dalla Commissione)? ------- #
     checks["lista_candidati_firmata"] = cu.rsa_verify(
