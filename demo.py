@@ -103,8 +103,17 @@ def run_full_election() -> None:
         label = "Scheda bianca" if cid == BLANK_ID else titles[cid]
         print(f"      {count:>2} voti   {label}")
     # Vincitore: si esclude la scheda bianca dal confronto.
-    winner = max((c for c in T if c != BLANK_ID), key=lambda c: T[c])
-    print(f"\n  >>> Vincitore: {titles[winner]}  ({T[winner]} voti)")
+    thesis_counts = {c: T[c] for c in T if c != BLANK_ID}
+    max_votes = max(thesis_counts.values()) if thesis_counts else 0
+    if max_votes == 0:
+        print("\n  >>> Vincitore: nessuno — nessuna preferenza espressa per le tesi.")
+    else:
+        top = [c for c, v in thesis_counts.items() if v == max_votes]
+        if len(top) == 1:
+            print(f"\n  >>> Vincitore: {titles[top[0]]}  ({max_votes} voti)")
+        else:
+            tied = ", ".join(titles[c] for c in top)
+            print(f"\n  >>> Pareggio ({max_votes} voti ciascuno): {tied}")
 
     banner("FASE 3 (post-chiusura) — VERIFICA INDIVIDUALE DELL'ELETTORE")
     all_ok = all(

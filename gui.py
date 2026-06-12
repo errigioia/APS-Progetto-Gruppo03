@@ -230,6 +230,23 @@ class VotingGUI(tk.Tk):
         self._build_widgets()
         self._set_phase_state()
 
+        # Su macOS, le finestre Tkinter avviate da terminale restano in secondo
+        # piano perché il processo non viene "attivato" dal sistema. Usiamo
+        # osascript per forzare l'attivazione tramite il PID del processo.
+        if sys.platform == "darwin":
+            self.after(0, self._macos_raise)
+
+    def _macos_raise(self) -> None:
+        import os, subprocess
+        pid = os.getpid()
+        subprocess.Popen(
+            ["osascript", "-e",
+             f"tell application \"System Events\" to set frontmost of "
+             f"(first process whose unix id is {pid}) to true"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
     # ------------------------------------------------------------------ #
     # Tema, font e stili
     # ------------------------------------------------------------------ #
@@ -839,13 +856,22 @@ class VotingGUI(tk.Tk):
         for cid, count in T.items():
             label = titles[cid]
             lines.append(f"   {count:>2} voti   {label}")
-        winner = max((c for c in T if c != BLANK_ID), key=lambda c: T[c])
+        thesis_counts = {c: T[c] for c in T if c != BLANK_ID}
+        max_votes = max(thesis_counts.values()) if thesis_counts else 0
         valid = len(out["tally"]["D"])
         invalid = len(out["tally"]["I"])
         lines.append("")
         lines.append(f"Schede valide: {valid}  ·  invalide: {invalid}  ·  "
                      f"K: {self.election.bb.get('token_count')['K']}")
-        lines.append(f"Vincitore: {titles[winner]}  ({T[winner]} voti)")
+        if max_votes == 0:
+            lines.append("Vincitore: nessuno — nessuna preferenza espressa per le tesi.")
+        else:
+            top = [c for c, v in thesis_counts.items() if v == max_votes]
+            if len(top) == 1:
+                lines.append(f"Vincitore: {titles[top[0]]}  ({max_votes} voti)")
+            else:
+                tied = ", ".join(titles[c] for c in top)
+                lines.append(f"Pareggio ({max_votes} voti ciascuno): {tied}")
         self.lbl_result.config(text="\n".join(lines))
         self.refresh_board()
         self._set_phase_state()
